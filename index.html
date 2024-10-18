@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Survey Redirector</title>
+    <!-- Optional: Prevent search engines from indexing this page -->
+    <meta name="robots" content="noindex, nofollow">
+    <script type="text/javascript">
+        // Function to get the stored redirected URL
+        function getStoredRedirectURL() {
+            return localStorage.getItem('redirectedURL');
+        }
+
+        // Function to store the selected URL and then go to the URL
+        function storeRedirectAndRun(url) {
+            // Stores the selected URL in the browsers local storage indefinitely
+            localStorage.setItem('redirectedURL', url);
+            // Redirect to the selected URL
+            window.location.replace(url);
+        }
+
+        // List of the two condition URLs
+        const urls = [
+            "https://app.onlinesurveys.jisc.ac.uk/s/qmu/nature-connection-survey-2/",                // Experimental condition
+            "https://app.onlinesurveys.jisc.ac.uk/s/qmu/forest-fires-and-mental-health-duplicate/"   // Control condition
+        ];
+
+        // Check if the redirected URL is already stored
+        var storedURL = getStoredRedirectURL();
+
+        
+        if (storedURL == null) {
+            // Fetch the sample counts before proceeding
+            fetch('https://mickeyboi.eu/api/sample')
+                .then(response => response.json())
+                .then(function(data) {
+                    var experimentSample = data.experimentSample;
+                    var controlSample = data.controlSample;
+
+                    // Validate that sample data are numbers
+                    if (typeof experimentSample !== 'number' || typeof controlSample !== 'number') {
+                        throw new Error('Invalid data format');
+                    }
+                    
+                    // Calculate sample difference between experiment and control
+                    let expSampleDiff = experimentSample - controlSample;
+                    // Clamp the difference between -10 and +10
+                    expSampleDiff = Math.max(-10, Math.min(expSampleDiff, 10));
+                    
+                    // Calculate the probability for experiment URL
+                    let expProbability = (-expSampleDiff + 10) / 20;
+                    // Generate a random number between 0 and 1
+                    let rand = Math.random();
+                    
+                    // Select condition based on the probability,
+                    //    then store the URL and redirect to it.
+                    if (rand <= expProbability) {
+                        storeRedirectAndRun(urls[0]);    // Experimental condition
+                    } else {
+                        storeRedirectAndRun(urls[1]);    // Control condition
+                    }
+                })
+                .catch(function(error) {
+                    // Output error in console
+                    console.error('Error during fetching sample counts:', error);
+                    // Generate a random index number to select one of the URLs
+                    let randomIndex = Math.floor(Math.random() * urls.length);
+                    // Store the selected URL and redirect to it
+                    storeRedirectAndRun(urls[randomIndex]);
+                });
+        } else {
+            // Redirect to the stored URL
+            window.location.replace(storedURL);
+        }
+    </script>
+</head>
+<body>
+    <!-- Content for users without JavaScript enabled -->
+    <noscript>
+        <p>Please enable JavaScript to be redirected.</p>
+    </noscript>
+</body>
+</html>
