@@ -31,7 +31,7 @@
         
         if (storedURL == null) {
             // Fetch the sample counts before proceeding
-            fetch('https://mickeyboi.eu/api/sample')
+            fetch('https://mickeyboi.eu/api')
                 .then(response => response.json())
                 .then(function(data) {
                     var experimentSample = data.experimentSample;
